@@ -433,7 +433,7 @@ def prob_sf_0218(v_in_ms=None, v_out_ms=None, dt_s=None):
         raise ValueError("dt must be > 0")
     # initial +vi toward wall, final velocity is -vo away from wall
     delta_v = (-vo) - (+vi)
-    a = abs(delta_v) / dt
+    a = -(abs(delta_v) / dt)
     return a
 
 
@@ -925,6 +925,6 @@ def prob_kn_0250a_part3(v0_ms=None, d_m=None, t_reaction_s=None, include_reactio
     if a >= 0:
         raise ValueError("acceleration must be negative to stop")
     t_brake = -v0 / a
-    return (t_reaction_s + t_brake) if include_reaction else t_brake
+    return t_brake
 
 
