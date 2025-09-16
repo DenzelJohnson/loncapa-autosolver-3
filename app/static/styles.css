@@ -1,0 +1,28 @@
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #eee;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 8px 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.box {
+  border: 1px solid #ddd;
+  padding: 8px;
+  margin: 8px 0;
+  border-radius: 4px;
+}
+.box.success {
+  background: #e8f7ee;
+  border-color: #32a852;
+}
+.box.failure {
+  background: #fdecea;
+  border-color: #e12d39;
+}

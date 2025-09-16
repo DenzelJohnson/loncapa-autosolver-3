@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Loncapa Autosolver</title>
+    <link rel="stylesheet" href="/static/styles.css?v=5">
+    <style>
+      .gear { position:absolute; right:16px; top:12px; }
+      .gear a { text-decoration:none; color:#6b7280; font-size:22px; padding:6px 8px; border-radius:6px; }
+      .gear a:hover { background:#e5e7eb; color:#111827; }
+    </style>
+  </head>
+  <body>
+    <div class="gear" title="Settings">
+      <a href="/user" aria-label="Switch to user page">⚙️</a>
+    </div>
+    <h1>Loncapa Autosolver</h1>
+    <button id="test-button">Test Button</button>
+
+    <div>
+      <h2>Paste Assignment HTML</h2>
+      <textarea id="assignment-html" rows="20" cols="100" placeholder="Paste the full assignment page HTML here..."></textarea>
+      <br>
+      <button id="solve-assignment">Solve Assignment</button>
+      <button id="debug-extract" style="margin-left:8px">Debug Extract</button>
+    </div>
+
+    <div>
+      <h2>Results</h2>
+      <div id="loading" class="spinner" style="display:none"></div>
+      <div id="results"></div>
+    </div>
+
+    <script>console.log('app.js expected v=4')</script>
+    <script src="/static/app.js?v=4"></script>
+  </body>
+</html>
