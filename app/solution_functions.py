@@ -629,9 +629,6 @@ def prob_sf_0206a(t1_s=None, t2_s=None):
     if t2 == t1:
         return 0.0
 
-        if t2 == t1:
-        return 0.0
-
     def x_of(t: float) -> float:
         if t <= 0.0:
             return 0.0
