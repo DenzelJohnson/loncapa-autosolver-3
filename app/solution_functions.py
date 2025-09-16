@@ -671,15 +671,17 @@ def prob_sb_0441a_part1(v_current_kmh=None, d_cross_km=None, d_up_km=None, v_boa
     alpha_deg = math.degrees(math.atan2(y0, x0))
     return alpha_deg
 
-
 def prob_sb_0441a_part2(v_current_kmh=None, d_cross_km=None, d_up_km=None, v_boat_kmh=None):
-    if None in (d_cross_km, d_up_km):
-        raise ValueError("river_rescue_boat_angle requires d_cross_km, d_up_km")
-    y0 = float(d_cross_km)
-    x0 = float(d_up_km)
-    # Ground-track direction to the target is the geometric angle to the point
-    phi_deg = math.degrees(math.atan2(y0, x0))
-    return phi_deg
+    if None in (v_current_kmh, d_cross_km, d_up_km, v_boat_kmh):
+        raise ValueError("river_rescue_boat_angle requires v_current_kmh, d_cross_km, d_up_km, v_boat_kmh")
+    # Intercept time: distance to child’s initial position at speed through water (current cancels)
+    t_h = math.hypot(d_up_km, d_cross_km) / float(v_boat_kmh)
+    # Child has drifted downstream by v_current * t_h when intercepted
+    x_intercept = -float(d_up_km) + float(v_current_kmh) * t_h
+    # Angle (w.r.t. shore) of the boat’s ground velocity toward the intercept point
+    phi_raw_deg = math.degrees(math.atan2(float(d_cross_km), x_intercept))
+    # Return the acute angle with the shore (0–90°)
+    return abs(phi_raw_deg) if abs(phi_raw_deg) <= 90 else 180 - abs(phi_raw_deg)
 
 
 def prob_sb_0441a_part3(v_current_kmh=None, d_cross_km=None, d_up_km=None, v_boat_kmh=None):
