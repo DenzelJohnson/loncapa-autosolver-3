@@ -66,7 +66,16 @@ def solve_assignment(html: str) -> Dict[str, Any]:
             if not callable(solver_fn):
                 item["solutions"].append({"ok": False, "error": "no solver", "part": entry.get("part"), "prompt": entry.get("prompt")})
                 continue
-            kwargs = {inputs_order[i]: variables_list[i] for i in range(min(len(inputs_order), len(variables_list)))}
+            # Support matchers that return list-of-lists for multipart intervals
+            part_vars = variables_list
+            if isinstance(variables_list, list) and variables_list and isinstance(variables_list[0], list):
+                # Select per-part variables if available; otherwise fall back to first pair
+                idx = (entry.get("part") or 1) - 1
+                if 0 <= idx < len(variables_list):
+                    part_vars = variables_list[idx]
+                else:
+                    part_vars = variables_list[0]
+            kwargs = {inputs_order[i]: part_vars[i] for i in range(min(len(inputs_order), len(part_vars)))}
             try:
                 value = solver_fn(**{k: float(v) for k, v in kwargs.items()})
                 display = f"{format_sig_figs(value, 3)} {units}".strip()

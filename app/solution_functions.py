@@ -169,8 +169,8 @@ questions_1D03 = [
   {
     "problem_id": "sf-prob0206a.problem",
     "question_text": "Average velocity from fixed x(t) graph over [t1,t2]",
-    "inputs": [],
-    "function": "prob_sf_0206a_part1",
+    "inputs": ["t1_s", "t2_s"],
+    "function": "prob_sf_0206a",
     "answer_units": "m/s",
     "pattern_matcher": "prob0206a",
     "part": 1,
@@ -179,8 +179,8 @@ questions_1D03 = [
   {
     "problem_id": "sf-prob0206a.problem",
     "question_text": "Average velocity from fixed x(t) graph over [t1,t2] (part 2)",
-    "inputs": [],
-    "function": "prob_sf_0206a_part2",
+    "inputs": ["t1_s", "t2_s"],
+    "function": "prob_sf_0206a",
     "answer_units": "m/s",
     "pattern_matcher": "prob0206a",
     "part": 2,
@@ -189,8 +189,8 @@ questions_1D03 = [
   {
     "problem_id": "sf-prob0206a.problem",
     "question_text": "Average velocity from fixed x(t) graph over [t1,t2] (part 3)",
-    "inputs": [],
-    "function": "prob_sf_0206a_part3",
+    "inputs": ["t1_s", "t2_s"],
+    "function": "prob_sf_0206a",
     "answer_units": "m/s",
     "pattern_matcher": "prob0206a",
     "part": 3,
@@ -645,14 +645,7 @@ def prob_sf_0206a(t1_s=None, t2_s=None):
 
     return (x_of(t2) - x_of(t1)) / (t2 - t1)
 
-def prob_sf_0206a_part1():
-    return prob_sf_0206a(0.0, 1.0)
-
-def prob_sf_0206a_part2():
-    return prob_sf_0206a(0.0, 2.0)
-
-def prob_sf_0206a_part3():
-    return prob_sf_0206a(1.0, 5.0)
+# (removed fixed-interval wrappers; now parts use dynamic [t1,t2] from matcher)
 
 
 # Build indexes now that all question lists are defined

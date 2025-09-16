@@ -132,15 +132,26 @@ def prob0258(html_or_text: str) -> List[str]:
 
 
 def prob0206a(html_or_text: str) -> List[str]:
-    """Extract t1_s, t2_s for the specified time interval."""
+    """Extract one or more intervals [t1, t2] from the statement.
+    Returns either [t1, t2] (single interval) or [[t1a, t2a], [t1b, t2b], ...] for multipart.
+    """
     text = html_or_text
-    m = re.search(r"time\s+interval\s*([0-9]+(?:\.[0-9]+)?)\s*s\s*to\s*([0-9]+(?:\.[0-9]+)?)\s*s", text, flags=re.IGNORECASE)
-    if m:
-        return [m.group(1), m.group(2)]
-    # Fallback: first two numbers followed by 's'
+    pairs = re.findall(r"time\s+interval\s*([0-9]+(?:\.[0-9]+)?)\s*s\s*to\s*([0-9]+(?:\.[0-9]+)?)\s*s", text, flags=re.IGNORECASE)
+    if len(pairs) >= 1:
+        # If only one, return flat pair; if multiple, return list of pairs
+        if len(pairs) == 1:
+            return [pairs[0][0], pairs[0][1]]
+        return [[a, b] for a, b in pairs]
+    # Fallback: grab all times mentioned with 's' and pair them in order
     times = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*s\b", text, flags=re.IGNORECASE)
     if len(times) >= 2:
-        return [times[0], times[1]]
+        if len(times) == 2:
+            return [times[0], times[1]]
+        # Pair consecutively: (0,1), (2,3), ...
+        grouped = []
+        for i in range(0, len(times) - 1, 2):
+            grouped.append([times[i], times[i+1]])
+        return grouped if grouped else [times[0], times[1]]
     raise ValueError("Could not extract t1,t2 for prob0206a")
 
 
