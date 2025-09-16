@@ -629,19 +629,22 @@ def prob_sf_0206a(t1_s=None, t2_s=None):
     if t2 == t1:
         return 0.0
 
+        if t2 == t1:
+        return 0.0
+
     def x_of(t: float) -> float:
         if t <= 0.0:
             return 0.0
         if t <= 1.0:
             return 4.0 * t
-        if t <= 2.5:
+        if t <= 2.0:
             return 8.0 - 4.0 * t
-        if t <= 3.5:
+        if t <= 4.0:
             return -2.0
         if t <= 5.0:
-            return -2.0 + (4.0/3.0) * (t - 3.5)
+            return 2.0 * t - 10.0
         # Extrapolate last segment if needed
-        return -2.0 + (4.0/3.0) * (t - 3.5)
+        return 2.0 * t - 10.0
 
     return (x_of(t2) - x_of(t1)) / (t2 - t1)
 
