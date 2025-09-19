@@ -1,5 +1,78 @@
 function mark(ok) { return ok ? "✓" : "✗"; }
 
+async function trackSolve(email){
+  try {
+    await fetch("/track-solve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+  } catch (e) {
+    // Intentionally ignore tracking failures
+  }
+}
+
+async function submitEmailIfNeeded(){
+  const input = document.getElementById("email-input");
+  const status = document.getElementById("email-status");
+  const email = (input && input.value ? input.value : "").trim();
+  if (!email) {
+    if (input) input.style.borderColor = "#ef4444"; // red
+    if (status) {
+      status.textContent = "Please enter your email before solving.";
+      status.style.color = "#ef4444";
+      status.style.fontSize = "1.05rem"; // slightly larger
+    }
+    return { ok: false };
+  }
+  // Simple format check (not exhaustive): something@something.tld
+  const simpleEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!simpleEmail.test(email)) {
+    if (input) input.style.borderColor = "#ef4444";
+    if (status) {
+      status.textContent = "Please enter a valid email (e.g., name@example.com).";
+      status.style.color = "#ef4444";
+      status.style.fontSize = "1.05rem";
+    }
+    return { ok: false };
+  }
+  try {
+    // Optimistically clear styling
+    if (input) input.style.borderColor = "#d1d5db";
+    if (status) {
+      status.textContent = "";
+      status.style.color = "#6b7280";
+      status.style.fontSize = "";
+    }
+    const res = await fetch("/save-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok && data && data.ok) {
+      if (status) status.textContent = "Email saved.";
+      return { ok: true };
+    } else {
+      if (status) {
+        status.textContent = "Could not save email. Please try again.";
+        status.style.color = "#ef4444";
+        status.style.fontSize = "1.05rem";
+      }
+      if (input) input.style.borderColor = "#ef4444";
+      return { ok: false };
+    }
+  } catch (e) {
+    if (status) {
+      status.textContent = "Network error saving email. Please try again.";
+      status.style.color = "#ef4444";
+      status.style.fontSize = "1.05rem";
+    }
+    if (input) input.style.borderColor = "#ef4444";
+    return { ok: false };
+  }
+}
+
 function renderResults(report) {
   const container = document.getElementById("results");
   container.innerHTML = "";
@@ -28,7 +101,6 @@ function renderResults(report) {
 
     let anyOk = false;
     if (Array.isArray(q.solutions) && q.solutions.length) {
-      // For multipart, display each part on separate line
       q.solutions.sort((a,b)=>(a.part||0)-(b.part||0)).forEach((sol)=>{
         const row = document.createElement("div");
         row.style.display = "flex";
@@ -53,7 +125,6 @@ function renderResults(report) {
         if (sol.ok) anyOk = true;
       });
     } else {
-      // Single-part fallback
       const single = document.createElement("div");
       single.className = "answer";
       if (q.steps && q.steps.solution && q.steps.solution.ok) {
@@ -85,6 +156,20 @@ async function solve() {
   const html = document.getElementById("assignment-html").value;
   if (loading) loading.style.display = "block";
   if (btn) btn.disabled = true;
+
+  // Gate on email being saved successfully
+  const gate = await submitEmailIfNeeded();
+  if (!gate || !gate.ok) {
+    if (loading) loading.style.display = "none";
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  // Fire-and-forget tracking; don't block solving
+  const input = document.getElementById("email-input");
+  const email = (input && input.value ? input.value : "").trim();
+  trackSolve(email);
+
   try {
     const res = await fetch("/solve-assignment", {
       method: "POST",
@@ -101,34 +186,9 @@ async function solve() {
   }
 }
 
-async function submitEmail(){
-  const input = document.getElementById("email-input");
-  const status = document.getElementById("email-status");
-  const email = (input && input.value ? input.value : "").trim();
-  if (!email) {
-    if (status) status.textContent = "Please enter an email.";
-    return;
-  }
-  try {
-    const res = await fetch("/save-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok && data && data.ok) {
-      if (status) status.textContent = "Saved!";
-    } else {
-      if (status) status.textContent = "Failed to save email.";
-    }
-  } catch (e) {
-    if (status) status.textContent = "Failed to save email.";
-  }
-}
-
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("solve-assignment");
   if (btn) btn.addEventListener("click", solve);
   const btnEmail = document.getElementById("email-submit");
-  if (btnEmail) btnEmail.addEventListener("click", submitEmail);
+  if (btnEmail) btnEmail.remove(); // No longer used
 }); 

@@ -87,6 +87,40 @@ async def save_email(payload: EmailIn, request: Request):
         raise HTTPException(status_code=500, detail="Failed to append row")
     return {"ok": True}
 
+@app.post("/track-solve")
+async def track_solve(payload: EmailIn, request: Request):
+    sheet_id = os.environ.get("GOOGLE_SHEET_ID")
+    if not sheet_id:
+        raise HTTPException(status_code=500, detail="Missing GOOGLE_SHEET_ID")
+
+    gc = _gspread_client_from_env()
+    sh = gc.open_by_key(sheet_id)
+
+    # Allow override via env; default to 'solves-tracker'
+    title = os.environ.get("GOOGLE_SOLVES_WORKSHEET", "solves-tracker")
+
+    try:
+        ws = sh.worksheet(title)
+    except Exception:
+        # Create if it doesn't exist
+        try:
+            ws = sh.add_worksheet(title=title, rows=1000, cols=3)
+            try:
+                ws.update("A1:C1", [["timestamp_utc", "email", "ip"]])
+            except Exception:
+                pass
+        except Exception:
+            raise HTTPException(status_code=500, detail="Failed to open or create solves-tracker")
+
+    ip = request.client.host if request and request.client else ""
+    ts = datetime.datetime.utcnow().isoformat() + "Z"
+    try:
+        ws.append_row([ts, payload.email, ip], value_input_option="USER_ENTERED")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to append tracker row")
+
+    return {"ok": True}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
