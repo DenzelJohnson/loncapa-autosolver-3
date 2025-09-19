@@ -8,6 +8,13 @@ import os, json, datetime
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr
 
+# Load .env if present (no-op in prod if env vars are already set)
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    pass
+
 class EmailIn(BaseModel):
     email: EmailStr
 
