@@ -101,7 +101,34 @@ async function solve() {
   }
 }
 
+async function submitEmail(){
+  const input = document.getElementById("email-input");
+  const status = document.getElementById("email-status");
+  const email = (input && input.value ? input.value : "").trim();
+  if (!email) {
+    if (status) status.textContent = "Please enter an email.";
+    return;
+  }
+  try {
+    const res = await fetch("/save-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok && data && data.ok) {
+      if (status) status.textContent = "Saved!";
+    } else {
+      if (status) status.textContent = "Failed to save email.";
+    }
+  } catch (e) {
+    if (status) status.textContent = "Failed to save email.";
+  }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("solve-assignment");
   if (btn) btn.addEventListener("click", solve);
+  const btnEmail = document.getElementById("email-submit");
+  if (btnEmail) btnEmail.addEventListener("click", submitEmail);
 }); 

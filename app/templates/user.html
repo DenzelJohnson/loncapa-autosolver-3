@@ -147,15 +147,23 @@
         </div>
         <div class="card-content">
           <ol class="clean muted">
+            <li>Enter your email below and press Submit</li>
             <li>Right click the screen on your Loncapa assignment page</li>
-            <li>Select “Inspect” from the context menu</li>
-            <li>Navigate to the “Elements” tab in developer tools</li>
+            <li>Select “Inspect” and navigate to the "Elements" tab</li>
             <li>Scroll to the top of the elements</li>
             <li>Right click on the first coloured row that starts with "&lt;html"</li>
             <li>Press “Copy” and then “Copy outerHTML”</li>
             <li>Paste the HTML content in the textbox below</li>
           </ol>
         </div>
+      </div>
+
+      <!-- Email input -->
+      <div class="email-box" style="margin: 16px 0; text-align:center">
+        <label for="email-input" style="display:block; font-weight:600; margin-bottom:6px">Email</label>
+        <input id="email-input" type="email" placeholder="you@example.com" style="font-size:1.1rem; padding:10px 12px; width: min(520px, 90%); border:1px solid #d1d5db; border-radius:8px" />
+        <button id="email-submit" style="margin-left:10px; font-size:1.1rem; padding:10px 14px; border:1px solid #111827; border-radius:8px; background:#111827; color:#fff; cursor:pointer">Submit</button>
+        <div id="email-status" style="margin-top:8px; color:#6b7280"></div>
       </div>
 
       <!-- HTML Input -->
