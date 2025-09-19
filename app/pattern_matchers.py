@@ -442,9 +442,259 @@ def hr0483(html_or_text: str) -> List[str]:
         raise ValueError("Could not extract variables for hr0483")
     return [v_air.group(1), dist.group(1), heading.group(1), time.group(1)]
 
+
+def sb0518a(html_or_text: str) -> List[str]:
+    """Extract F_n_N, F_e_N, F_s_N, m_kg from sb-prob0518a wording.
+    Handles phrases like "10.0 N north, 20.7 N east, 15.3 N south ... 4.23 kg mass".
+    Returns strings preserving numeric formatting.
+    """
+    text = html_or_text
+    # Directional forces
+    fn = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*north", text, flags=re.IGNORECASE)
+    fe = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*east", text, flags=re.IGNORECASE)
+    fs = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*south", text, flags=re.IGNORECASE)
+    # Mass
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+
+    if not (fn and fe and fs and m):
+        # Fallback: pick by order with labeled directions possibly shuffled
+        dir_pairs = {
+            'north': re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*north", text, flags=re.IGNORECASE),
+            'east': re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*east", text, flags=re.IGNORECASE),
+            'south': re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\s*south", text, flags=re.IGNORECASE),
+        }
+        fn = fn or dir_pairs['north']
+        fe = fe or dir_pairs['east']
+        fs = fs or dir_pairs['south']
+        if m is None:
+            m = re.search(r"mass\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+
+    if not (fn and fe and fs and m):
+        raise ValueError("Could not extract variables for sb0518a")
+
+    return [fn.group(1), fe.group(1), fs.group(1), m.group(1)]
+
+
+def sb0524a(html_or_text: str) -> List[str]:
+    """Extract W_N, theta1_deg, theta2_deg for sb-prob0524a (three-wire support).
+    Expects phrasing like: weight 335 N, θ1 = 55.9°, θ2 = 23.3°.
+    """
+    text = html_or_text
+    # Weight (N)
+    w = re.search(r"weight\s*([0-9]+(?:\.[0-9]+)?)\s*N", text, flags=re.IGNORECASE)
+    # Angles in degrees with symbols or 'deg'
+    ths = re.findall(r"(?:θ|theta)\s*<sub>?1</sub>?\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)|(?:θ|theta)\s*<sub>?2</sub>?\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    # Collect theta1 and theta2 preserving order
+    theta1 = None
+    theta2 = None
+    # Also support plain 'θ1 = 55.9° and θ2 = 23.3°' in one sentence
+    t1 = re.search(r"(?:θ|theta)\s*1\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    t2 = re.search(r"(?:θ|theta)\s*2\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if t1: theta1 = t1.group(1)
+    if t2: theta2 = t2.group(1)
+    if (theta1 is None or theta2 is None) and ths:
+        # ths yields tuples with one of the groups filled per match; scan to fill both
+        for a, b in ths:
+            if a and theta1 is None:
+                theta1 = a
+            if b and theta2 is None:
+                theta2 = b
+            if theta1 is not None and theta2 is not None:
+                break
+
+    if not (w and theta1 and theta2):
+        raise ValueError("Could not extract W_N, theta1_deg, theta2_deg for sb0524a")
+    return [w.group(1), theta1, theta2]
+
 REGISTRY.update({
     "sb0441a": sb0441a,
     "sb0464": sb0464,
     "sb0446": sb0446,
     "hr0483": hr0483,
+    "sb0518a": sb0518a,
+    "sb0524a": sb0524a,
+})
+
+
+def hr0532(html_or_text: str) -> List[str]:
+    """Extract v0_ms, F_N, dx_m for hr-prob0532 (electron deflection).
+    Looks for horizontal speed (m/s), vertical force (N), and horizontal distance (m or mm).
+    Returns raw textual numbers: v0 may include scientific notation, dx preserves mm if given.
+    """
+    text = html_or_text
+    v0 = re.search(r"([0-9]+(?:\.[0-9]+)?(?:E[+-]?[0-9]+)?)\s*m\s*/\s*s", text, flags=re.IGNORECASE)
+    F = re.search(r"([0-9]+(?:\.[0-9]+)?(?:E[+-]?[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    # Preserve raw distance token: mm or meters; if both exist, prefer the one paired with the deflection sentence
+    dx_token = None
+    mm = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*mm\b", text, flags=re.IGNORECASE)
+    if mm:
+        dx_token = mm.group(1)  # raw '32.0' etc.
+    else:
+        dx = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\b(?!\s*/\s*s)", text, flags=re.IGNORECASE)
+        if dx:
+            dx_token = dx.group(1)
+    if not (v0 and F and dx_token):
+        raise ValueError("Could not extract variables for hr0532")
+    return [v0.group(1), F.group(1), dx_token]
+
+
+def kn0842(html_or_text: str) -> List[str]:
+    """Extract m_painter_kg, m_chair_kg, a_ms2 for kn-prob0842 (painter on chair-pulley)."""
+    text = html_or_text
+    ms = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    a = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s\s*\^?2|([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s\s*\*\*\s*2", text, flags=re.IGNORECASE)
+    if len(ms) < 2 or not a:
+        # fallback for a like 0.334m/s^2 without caret variations
+        a2 = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s\s*\^\s*2|([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s\s*\^?2", text, flags=re.IGNORECASE)
+        if len(ms) < 2 or not (a or a2):
+            raise ValueError("Could not extract variables for kn0842")
+        a = a or a2
+    a_val = a.group(1) or a.group(2)
+    return [ms[0], ms[1], a_val]
+
+REGISTRY.update({
+    "hr0532": hr0532,
+    "kn0842": kn0842,
+})
+
+
+def kn0832(html_or_text: str) -> List[str]:
+    """Extract mu_s, mu_k, d_m, m_lower_kg, m_upper_kg for Knight 0832.
+    Robust to phrases like:
+    - "The coefficient of static friction is 0.603 ..."
+    - "The coefficient of kinetic friction ... is 0.117."
+    - "cross a distance of 7.27m"
+    - "mass of the lower block is 1.72kg and the mass of the upper block is 3.06kg"
+    """
+    text = html_or_text
+    # mu_s
+    mus = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|coefficient\s+of\s+static\s+friction\s+is\s*([0-9]+(?:\.[0-9]+)?)",
+                    text, flags=re.IGNORECASE)
+    # mu_k
+    muk = re.search(r"(?:mu|μ)[_\s]*k\s*=\s*([0-9]+(?:\.[0-9]+)?)|coefficient\s+of\s+kinetic\s+friction\s+.*?\s*([0-9]+(?:\.[0-9]+)?)",
+                    text, flags=re.IGNORECASE)
+    # distance
+    d = re.search(r"distance\s+of\s*([0-9]+(?:\.[0-9]+)?)\s*m", text, flags=re.IGNORECASE)
+    # masses (lower first then upper)
+    m_lower = re.search(r"lower\s+block\s+is\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    m_upper = re.search(r"upper\s+block\s+.*?\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not m_lower or not m_upper:
+        # fallback: take first two kg numbers in order
+        kg_list = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if len(kg_list) >= 2:
+            class _M:
+                def __init__(self, v): self._v = v
+                def group(self, i): return self._v
+            if not m_lower: m_lower = _M(kg_list[0])
+            if not m_upper: m_upper = _M(kg_list[1])
+    mu_s_val = (mus.group(1) or mus.group(2)) if mus else None
+    mu_k_val = (muk.group(1) or muk.group(2)) if muk else None
+    if not (mu_s_val and mu_k_val and d and m_lower and m_upper):
+        raise ValueError("Could not extract variables for kn0832")
+    return [mu_s_val, mu_k_val, d.group(1), m_lower.group(1), m_upper.group(1)]
+
+
+def kn0552(html_or_text: str) -> List[str]:
+    """Extract m_kg, phi_deg, mu_s for Knight 0552 (block against wall)."""
+    text = html_or_text
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    phi = re.search(r"(?:ϕ|phi)\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    mus = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|μ<sub>\s*s\s*</sub>\s*=\s*([0-9]+(?:\.[0-9]+)?)|mu<sub>\s*s\s*</sub>\s*=\s*([0-9]+(?:\.[0-9]+)?)",
+                    text, flags=re.IGNORECASE)
+    if not (m and phi and mus):
+        # fallback for static friction wording
+        mus2 = re.search(r"coefficient\s+of\s+static\s+friction\s*=?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+        if not (m and phi and (mus or mus2)):
+            raise ValueError("Could not extract variables for kn0552")
+        mu_s_val = mus.group(1) if mus else mus2.group(1)
+    else:
+        mu_s_val = mus.group(1) or mus.group(2) or mus.group(3)
+    return [m.group(1), phi.group(1), mu_s_val]
+
+REGISTRY.update({
+    "kn0832": kn0832,
+    "kn0552": kn0552,
+})
+
+
+def kn0810(html_or_text: str) -> List[str]:
+    """Extract m_astronaut_kg, m_satellite_kg, F_N, t_push_s, t_after_min for kn-prob0810."""
+    text = html_or_text
+    masses = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    F = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    tpush = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*s\b", text, flags=re.IGNORECASE)
+    tmin = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*min\b", text, flags=re.IGNORECASE)
+    if len(masses) < 2 or not (F and tpush and tmin):
+        raise ValueError("Could not extract variables for kn0810")
+    return [masses[0], masses[1], F.group(1), tpush.group(1), tmin.group(1)]
+
+
+def kn0820(html_or_text: str) -> List[str]:
+    """Extract mu_k, mA_kg, mB_kg, T1_N for kn-prob0820 (two sleds)."""
+    text = html_or_text
+    # Accept forms: mu_k = 0.060, coefficient of kinetic friction = 0.060, coefficient of friction ... is 0.060
+    mu_k_match = re.search(r"(?:mu|μ)[_\s]*k\s*=\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    if not mu_k_match:
+        mu_k_match = re.search(r"coefficient\s+of\s+(?:kinetic\s+)?friction.*?(?:is|=)\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE | re.DOTALL)
+    masses = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    T1 = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    mu_val = mu_k_match.group(1) if mu_k_match else None
+    if not (mu_val and len(masses) >= 2 and T1):
+        raise ValueError("Could not extract variables for kn0820")
+    return [mu_val, masses[0], masses[1], T1.group(1)]
+
+
+def sb0552a(html_or_text: str) -> List[str]:
+    """Extract m_kg, T_N, h_pulley_m, mu_k, x_m for sb-prob0552a."""
+    text = html_or_text
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    T = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    # Height in cm near the word 'pulley'
+    h_cm = re.search(r"pulley.*?([0-9]+(?:\.[0-9]+)?)\s*cm", text, flags=re.IGNORECASE | re.DOTALL)
+    h_m = str(float(h_cm.group(1)) / 100.0) if h_cm else None
+    mu = re.search(r"(?:mu|μ)[_\s]*k\s*=\s*([0-9]+(?:\.[0-9]+)?)|coefficient\s+of\s+kinetic\s+friction\s*(?:is|=)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    x_equal = re.search(r"x\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*m", text, flags=re.IGNORECASE)
+    xm = x_equal.group(1) if x_equal else None
+    mu_val = (mu.group(1) or mu.group(2)) if mu else None
+    if not (m and T and h_m and mu_val and xm):
+        raise ValueError("Could not extract variables for sb0552a")
+    return [m.group(1), T.group(1), h_m, mu_val, xm]
+
+
+def sb0563a(html_or_text: str) -> List[str]:
+    """Extract m_kg, mu_s for sb-prob0563a (toaster)."""
+    text = html_or_text
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    mu = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|co-?efficient\s+of\s+static\s+friction\s*(?:is|=)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    mu_val = (mu.group(1) or mu.group(2)) if mu else None
+    if not (m and mu_val):
+        # Fallback: look for a 0.xxx right after a line containing 'static friction'
+        if not mu_val:
+            mu_fallback = re.search(r"static\s+friction[^0-9]*([01]?\.\d+)", text, flags=re.IGNORECASE)
+            if mu_fallback:
+                mu_val = mu_fallback.group(1)
+        # If still missing m, take first kg number
+        if not m:
+            m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if not (m and mu_val):
+            raise ValueError("Could not extract variables for sb0563a")
+    return [m.group(1), mu_val]
+
+
+def hr0621(html_or_text: str) -> List[str]:
+    """Extract mu_s, v_kmh for hr-prob0621 (truck stopping)."""
+    text = html_or_text
+    mu = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|co-?efficient\s+of\s+static\s+friction\s*(?:is|=|of)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    v = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*km\s*/\s*h(?:r)?", text, flags=re.IGNORECASE)
+    mu_val = (mu.group(1) or mu.group(2)) if mu else None
+    if not (mu_val and v):
+        raise ValueError("Could not extract variables for hr0621")
+    return [mu_val, v.group(1)]
+
+REGISTRY.update({
+    "kn0810": kn0810,
+    "kn0820": kn0820,
+    "sb0552a": sb0552a,
+    "sb0563a": sb0563a,
+    "hr0621": hr0621,
 })

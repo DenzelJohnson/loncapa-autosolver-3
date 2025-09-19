@@ -832,11 +832,11 @@ def prob_sb_0441a_part1(v_current_kmh=None, d_cross_km=None, d_up_km=None, v_boa
 def prob_sb_0441a_part2(v_current_kmh=None, d_cross_km=None, d_up_km=None, v_boat_kmh=None):
     if None in (v_current_kmh, d_cross_km, d_up_km, v_boat_kmh):
         raise ValueError("river_rescue_boat_angle requires v_current_kmh, d_cross_km, d_up_km, v_boat_kmh")
-    # Intercept time: distance to child’s initial position at speed through water (current cancels)
+    # Intercept time: distance to child's initial position at speed through water (current cancels)
     t_h = math.hypot(d_up_km, d_cross_km) / float(v_boat_kmh)
     # Child has drifted downstream by v_current * t_h when intercepted
     x_intercept = -float(d_up_km) + float(v_current_kmh) * t_h
-    # Angle (w.r.t. shore) of the boat’s ground velocity toward the intercept point
+    # Angle (w.r.t. shore) of the boat's ground velocity toward the intercept point
     phi_raw_deg = math.degrees(math.atan2(float(d_cross_km), x_intercept))
     # Return the acute angle with the shore (0–90°)
     return abs(phi_raw_deg) if abs(phi_raw_deg) <= 90 else 180 - abs(phi_raw_deg)
@@ -918,6 +918,185 @@ def prob_sf_0258(v0_ms=None, h_m=None):
     t1 = (-b + math.sqrt(disc)) / (2*a)
     t2 = (-b - math.sqrt(disc)) / (2*a)
     return max(t1, t2)
+
+def prob_kn_0810(m_astronaut_kg, m_satellite_kg, F_N, t_push_s, t_after_min, g=None):
+    """
+    Separation distance (m) between astronaut (m1) and satellite (m2)
+    when a constant push of magnitude F is applied for t_push seconds,
+    starting from rest. Report separation at t_after_min minutes after
+    the push BEGINS.
+
+    During push: a1=F/m1, a2=F/m2; separation grows as 0.5*(a1+a2)*t^2.
+    After push: relative speed is v_rel = (a1+a2)*t_push; separation grows linearly.
+    """
+    m1 = float(m_astronaut_kg)
+    m2 = float(m_satellite_kg)
+    F  = float(F_N)
+    tp = float(t_push_s)
+    T  = float(t_after_min) * 60.0
+
+    inv_sum = (1.0/m1 + 1.0/m2)  # 1/kg
+    if T <= tp:
+        return 0.5 * F * inv_sum * T*T
+    s_push = 0.5 * F * inv_sum * tp*tp
+    v_rel  = F * inv_sum * tp
+    return s_push + v_rel * (T - tp)
+
+
+# ----------------------------
+# kn-prob0820.problem
+# Two sleds with kinetic friction on snow: find tension in rope 2
+# ----------------------------
+def prob_kn_0820(mu_k, mA_kg, mB_kg, T1_N, g=9.80665):
+    """
+    T2 for two-sled train with kinetic friction μ_k for both sleds.
+    Rope-1 (T1) connects A and B, rope-2 (T2) connects dog to B.
+
+    From dynamics with common acceleration a and f_k = μ_k m g:
+        a = (T1 - μ_k mA g)/mA
+        a = T2/(mA+mB) - μ_k g
+    Eliminating a ⇒  T2 = (mA + mB) * (T1 / mA)
+    (μ_k cancels algebraically).
+    """
+    mA = float(mA_kg)
+    mB = float(mB_kg)
+    T1 = float(T1_N)
+    return (mA + mB) * (T1 / mA)
+
+
+# ----------------------------
+# sb-prob0552a.problem — Part 1
+# Pulley over block with kinetic friction: acceleration at x
+# ----------------------------
+def prob_sb_0552a_part1(m_kg, T_N, h_pulley_m, mu_k, x_m, g=9.80665):
+    """
+    Block of mass m on rough horizontal surface (μ_k). A rope at height h above
+    the block's top runs over a pulley; the segment to the block makes angle
+    θ = arctan(h/x). Tension magnitude is T (constant).
+
+    Horizontal net force: F_x = T cosθ - μ_k (m g - T sinθ)
+    ⇒ a = F_x / m
+    """
+    m  = float(m_kg)
+    T  = float(T_N)
+    h  = float(h_pulley_m)
+    x  = max(1e-12, float(x_m))  # avoid divide-by-zero
+    th = math.atan2(h, x)
+    sin_th = math.sin(th)
+    cos_th = math.cos(th)
+    N = m*g - T*sin_th
+    fk = mu_k * N
+    ax = (T*cos_th - fk) / m
+    return ax
+
+
+# ----------------------------
+# sb-prob0552a.problem — Part 2
+# x where acceleration becomes zero
+# ----------------------------
+def prob_sb_0552a_part2(m_kg, T_N, h_pulley_m, mu_k, x_m=None, g=9.80665):
+    """
+    Solve for x ≥ 0 such that acceleration from part 1 is zero:
+        T cosθ - μ_k (m g - T sinθ) = 0,
+    with θ = arctan(h/x). Using cosθ = x/R, sinθ = h/R, R = sqrt(x^2 + h^2),
+        μ_k m g R = T (x + μ_k h)
+    Let A = T/(μ_k m g). Solve quadratic:
+        (1 - A^2) x^2 - 2 A^2 μ_k h x + h^2 (1 - A^2 μ_k^2) = 0
+    Return the smallest nonnegative root. Falls back to a numeric solve if needed.
+    """
+    m  = float(m_kg)
+    T  = float(T_N)
+    h  = float(h_pulley_m)
+    mu = float(mu_k)
+
+    A = T / (mu * m * g)
+
+    a = 1.0 - A*A
+    b = -2.0 * (A*A) * mu * h
+    c = h*h * (1.0 - (A*A) * (mu*mu))
+
+    def quad_root(a, b, c):
+        D = b*b - 4*a*c
+        if D < 0:
+            return None
+        r1 = (-b - math.sqrt(D)) / (2*a)
+        r2 = (-b + math.sqrt(D)) / (2*a)
+        cands = [r for r in (r1, r2) if r >= 0]
+        if not cands:
+            return None
+        return min(cands)
+
+    # Primary: quadratic route (valid unless a≈0)
+    if abs(a) > 1e-12:
+        xr = quad_root(a, b, c)
+        if xr is not None:
+            return xr
+
+    # Fallback: solve μ_k m g*sqrt(x^2+h^2) - T(x + μ_k h) = 0 with bisection
+    def f(x):
+        return mu*m*g*math.hypot(x, h) - T*(x + mu*h)
+
+    lo, hi = 0.0, max(1.0, 10.0*h)
+    # Expand hi until sign change or limit
+    for _ in range(60):
+        if f(lo) == 0.0:
+            return lo
+        if f(hi) == 0.0 or f(lo)*f(hi) < 0:
+            break
+        hi *= 2.0
+    # Bisection
+    for _ in range(80):
+        mid = 0.5*(lo+hi)
+        fm = f(mid)
+        if fm == 0.0:
+            return mid
+        if f(lo)*fm < 0:
+            hi = mid
+        else:
+            lo = mid
+    return 0.5*(lo+hi)
+
+
+# ----------------------------
+# sb-prob0563a.problem — Part 1
+# Toaster: optimal pull angle to minimize required tension
+# ----------------------------
+def prob_sb_0563a_part1(m_kg, mu_s):
+    """
+    Optimal angle (deg) above horizontal to minimize the tension needed
+    to start motion: θ* = arctan(μ_s).
+    """
+    return math.degrees(math.atan(float(mu_s)))
+
+
+# ----------------------------
+# sb-prob0563a.problem — Part 2
+# Toaster: minimal tension at that optimal angle
+# ----------------------------
+def prob_sb_0563a_part2(m_kg, mu_s, g=9.80665):
+    """
+    Minimal tension (N) at θ* = arctan(μ_s):
+        T_min = μ_s m g / sqrt(1 + μ_s^2)
+    """
+    m  = float(m_kg)
+    mu = float(mu_s)
+    return (mu * m * g) / math.sqrt(1.0 + mu*mu)
+
+
+# ----------------------------
+# hr-prob0621.problem
+# Crates in truck: minimum stopping distance without sliding
+# ----------------------------
+def prob_hr_0621(mu_s, v_kmh, g=9.80665):
+    """
+    Max decel without sliding is a = μ_s g.
+    Convert v (km/h) -> m/s, stopping distance s = v^2 / (2 a).
+    """
+    v = float(v_kmh) * (1000.0/3600.0)  # m/s
+    a = float(mu_s) * g
+    if a <= 0:
+        raise ValueError("mu_s must be positive")
+    return v*v / (2.0 * a)
 
 
 # Physcis 1E03 Solutions Functions
@@ -1087,4 +1266,168 @@ def prob_kn_0250a_part3(v0_ms=None, d_m=None, t_reaction_s=None, include_reactio
     t_brake = -v0 / a
     return t_brake
 
+
+def prob_sb_0518a_part1(F_n_N=None, F_e_N=None, F_s_N=None, m_kg=None):
+    """Acceleration magnitude from three perpendicular forces on a mass.
+    Inputs: north (positive y), east (positive x), south (negative y), mass.
+    a = |sum F| / m, with F_y = F_n - F_s, F_x = F_e.
+    """
+    if None in (F_n_N, F_e_N, F_s_N, m_kg):
+        raise ValueError("prob_sb_0518a_part1 requires F_n_N, F_e_N, F_s_N, m_kg")
+    Fn = float(F_n_N)
+    Fe = float(F_e_N)
+    Fs = float(F_s_N)
+    m = float(m_kg)
+    Fx = Fe
+    Fy = Fn - Fs
+    a = math.hypot(Fx, Fy) / m
+    return a
+
+
+def prob_sb_0518a_part2(F_n_N=None, F_e_N=None, F_s_N=None, m_kg=None):
+    """Acceleration direction in degrees with east=0°, CCW positive.
+    Uses atan2(Fy, Fx) where Fx=Fe, Fy=Fn-Fs. Returns angle in [-180, 180].
+    """
+    if None in (F_n_N, F_e_N, F_s_N, m_kg):
+        raise ValueError("prob_sb_0518a_part2 requires F_n_N, F_e_N, F_s_N, m_kg")
+    Fn = float(F_n_N)
+    Fe = float(F_e_N)
+    Fs = float(F_s_N)
+    Fx = Fe
+    Fy = Fn - Fs
+    ang = math.degrees(math.atan2(Fy, Fx))
+    # Normalize to (-180, 180], but typical atan2 already is
+    if ang <= -180.0:
+        ang += 360.0
+    elif ang > 180.0:
+        ang -= 360.0
+    return ang
+
+
+def prob_sb_0524a_part1(W_N=None, theta1_deg=None, theta2_deg=None):
+    """Tension T1 for a three-wire support in equilibrium.
+    Geometry: two slanted wires at angles theta1, theta2 above horizontal, one vertical wire (T3) carries weight W.
+    Equations: horizontal balance T1 cos θ1 = T2 cos θ2; vertical balance T1 sin θ1 + T2 sin θ2 = T3, and T3 = W.
+    Solve: T1 = W * cos θ2 / sin(θ1 + θ2).
+    """
+    if None in (W_N, theta1_deg, theta2_deg):
+        raise ValueError("prob_sb_0524a_part1 requires W_N, theta1_deg, theta2_deg")
+    W = float(W_N)
+    th1 = math.radians(float(theta1_deg))
+    th2 = math.radians(float(theta2_deg))
+    denom = math.sin(th1 + th2)
+    if abs(denom) < 1e-12:
+        raise ValueError("Invalid geometry: sin(theta1+theta2)=0")
+    T1 = W * math.cos(th2) / denom
+    return T1
+
+
+def prob_sb_0524a_part2(W_N=None, theta1_deg=None, theta2_deg=None):
+    """Tension T2 for the same setup.
+    From balance: T2 = W * cos θ1 / sin(θ1 + θ2).
+    """
+    if None in (W_N, theta1_deg, theta2_deg):
+        raise ValueError("prob_sb_0524a_part2 requires W_N, theta1_deg, theta2_deg")
+    W = float(W_N)
+    th1 = math.radians(float(theta1_deg))
+    th2 = math.radians(float(theta2_deg))
+    denom = math.sin(th1 + th2)
+    if abs(denom) < 1e-12:
+        raise ValueError("Invalid geometry: sin(theta1+theta2)=0")
+    T2 = W * math.cos(th1) / denom
+    return T2
+
+
+def prob_sb_0524a_part3(W_N=None, theta1_deg=None, theta2_deg=None):
+    """Tension T3 (vertical) equals the weight W in static equilibrium."""
+    if W_N is None:
+        raise ValueError("prob_sb_0524a_part3 requires W_N")
+    return float(W_N)
+
+
+def prob_hr_0532(v0_ms=None, F_N=None, dx_m=None):
+    """
+    Vertical deflection y for a particle with horizontal speed v0, under a constant vertical force F,
+    during the time it travels a horizontal distance dx.
+    - v0_ms: horizontal speed (m/s), may be scientific notation as string
+    - F_N: vertical constant force (N)
+    - dx_m: horizontal distance token; if original unit was mm (from text like '32.0mm'), caller passes '32.0'. We normalize here.
+    Returns y in meters.
+    """
+    if v0_ms is None or F_N is None or dx_m is None:
+        raise ValueError("prob_hr_0532 requires v0_ms, F_N, dx_m")
+
+    # --- Normalize dx ---
+    dx = None
+    # Accept raw like '32.0', interpret as mm per our matcher behavior if the source text used mm
+    # Heuristic: if the original html contained 'mm' adjacent to this number, matcher provided just the numeric string.
+    # So we treat a small numeric (< 1 with one or two decimals) as meters if the text had 'm', else if likely mm we allow explicit mm by caller.
+    s = str(dx_m).strip()
+    # If caller already passed with unit suffix, parse accordingly
+    lower = s.lower().replace(" ", "")
+    if lower.endswith("mm"):
+        try:
+            dx = float(lower[:-2]) * 1e-3
+        except ValueError:
+            pass
+    elif lower.endswith("cm"):
+        try:
+            dx = float(lower[:-2]) * 1e-2
+        except ValueError:
+            pass
+    elif lower.endswith("m"):
+        try:
+            dx = float(lower[:-1])
+        except ValueError:
+            pass
+    if dx is None:
+        # No suffix: decide based on magnitude. If value > 10, assume meters; if typical mm like 32.0, convert mm→m.
+        try:
+            val = float(s)
+            dx = val * 1e-3 if val > 1.0 else val
+        except ValueError:
+            raise ValueError("dx_m not parseable")
+
+    v0 = float(v0_ms)
+    F = float(F_N)
+    me = 9.1093837015e-31
+    a = F / me
+    t = dx / v0
+    y = 0.5 * a * t * t
+    return y
+
+
+def prob_kn_0842(m_painter_kg=None, m_chair_kg=None, a_ms2=None):
+    """Pull force for painter + chair on an ideal frictionless rope/pulley.
+    Standard result for the typical setup where the painter pulls the free end of the rope attached over a pulley to the chair: two rope segments support the combined mass M; upward force from rope on system equals 2T; Newton: 2T - M g = M a ⇒ T = (M (g + a)) / 2.
+    Returns T in newtons.
+    """
+    if None in (m_painter_kg, m_chair_kg, a_ms2):
+        raise ValueError("prob_kn_0842 requires m_painter_kg, m_chair_kg, a_ms2")
+    M = float(m_painter_kg) + float(m_chair_kg)
+    a = float(a_ms2)
+    g = 9.80665
+    T = M * (g + a) / 2.0
+    return T
+
+
+def prob_kn_0832(mu_s, mu_k, d_m, m_lower_kg, m_upper_kg, g=9.80665):
+    """
+    Least time to travel distance d with no slip between blocks.
+    Top block mass m1 on lower block mass m2; floor friction is kinetic (mu_k).
+    """
+    m1, m2 = float(m_upper_kg), float(m_lower_kg)
+    a_max = ((mu_s*m1 - mu_k*(m1 + m2)) * g) / m2
+    if a_max <= 0:
+        raise ValueError("No-slip motion impossible with given parameters (a_max <= 0).")
+    return math.sqrt(2.0 * float(d_m) / a_max)
+
+
+def prob_kn_0552(m_kg, phi_deg, mu_s, g=9.80665):
+    """Minimum force to start moving the block UP the wall."""
+    phi = math.radians(phi_deg)
+    denom = math.sin(phi) - mu_s * math.cos(phi)   # friction downward
+    if denom <= 0:
+        raise ValueError("Impossible to move up for this angle: sinφ ≤ μs cosφ.")
+    return m_kg * g / denom
 
