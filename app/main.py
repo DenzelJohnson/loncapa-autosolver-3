@@ -7,6 +7,7 @@ from app.html_parser import extract_questions
 import os, json, datetime
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr
+from fastapi.responses import RedirectResponse
 
 # Load .env if present (no-op in prod if env vars are already set)
 try:
@@ -30,9 +31,13 @@ def health():
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/user", response_class=HTMLResponse)
-def user_page(request: Request):
-    return templates.TemplateResponse("user.html", {"request": request})
+@app.get("/user")
+def user_page_redirect():
+    return RedirectResponse(url="/")
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request):
+    return templates.TemplateResponse("admin.html", {"request": request})
 
 @app.post("/debug-extract")
 async def debug_extract_endpoint(payload: dict):

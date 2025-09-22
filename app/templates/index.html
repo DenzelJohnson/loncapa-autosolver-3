@@ -1,37 +1,256 @@
 <!doctype html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <title>Loncapa Autosolver</title>
-    <link rel="stylesheet" href="/static/styles.css?v=5">
+    <meta charset="utf-8" />
+    <title>Loncapa Autosolve — User</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Base styles to mimic v0/shadcn look without Tailwind -->
     <style>
-      .gear { position:absolute; right:16px; top:12px; }
-      .gear a { text-decoration:none; color:#6b7280; font-size:22px; padding:6px 8px; border-radius:6px; }
-      .gear a:hover { background:#e5e7eb; color:#111827; }
+      :root{
+        --bg:#0b0b0c; /* unused, just here if you dark-mode later */
+        --surface:#ffffff;
+        --border:#e5e7eb;
+        --muted:#6b7280;
+        --fg:#111827;
+        --ring:#111827;
+        --ring-soft:#d1d5db;
+      }
+      html,body{margin:0;padding:0}
+      body{
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Inter var", "Noto Sans", sans-serif;
+        color:var(--fg);
+        background:#f7f7f8;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-size:18px;
+      }
+      .container{max-width: 75vw; margin: 32px auto; padding: 0 1rem;}
+      .text-center{text-align:center}
+      .space-y-2 > * + *{margin-top:.5rem}
+      .space-y-4 > * + *{margin-top:1rem}
+      .space-y-6 > * + *{margin-top:1.5rem}
+      .space-y-8 > * + *{margin-top:2rem}
+
+      /* Header */
+      .title{font-size: 3.5rem; line-height:1.1; font-weight:800; letter-spacing:-0.02em; margin:0}
+      .sub{color:var(--muted); font-size:1.05rem}
+
+      /* Card */
+      .card{
+        background:var(--surface);
+        border:1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+      }
+      .card-header{padding: 16px; border-bottom:1px solid var(--border); text-align:center}
+      .card-title{margin:0; font-size:1.5rem; font-weight:800; color:#374151}
+      .card-content{padding:16px}
+      .muted{color:var(--muted)}
+      ol.clean{margin:0; padding-left:0; line-height:1.75; font-size:1.1rem; list-style-position: inside; text-align:center}
+
+      /* Inputs */
+      textarea{
+        width:100%;
+        min-height:260px;
+        resize:vertical;
+        border-radius: 10px;
+        border:1px solid var(--border);
+        background:#fff;
+        padding:12px 14px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        font-size:1.1rem;
+        outline: none;
+        transition: box-shadow .12s ease, border-color .12s ease;
+      }
+      textarea::placeholder{color:#9ca3af}
+      textarea:focus{
+        border-color:var(--ring);
+        box-shadow: 0 0 0 2px var(--ring), 0 0 0 4px #0000;
+      }
+
+      /* Buttons */
+      .btn{
+        display:inline-flex; align-items:center; justify-content:center;
+        width:100%;
+        padding:16px 20px;
+        border-radius:10px;
+        font-weight:700;
+        font-size:1.05rem;
+        border:1px solid #0000;
+        background:#111827; color:#fff;
+        cursor:pointer;
+        transition: transform .02s ease, opacity .2s ease, background .2s ease;
+      }
+      .btn:active{transform: translateY(1px)}
+      .btn:disabled{opacity:.6; cursor:default}
+      .btn-outline{
+        width:auto;
+        padding:10px 14px;
+        border-radius:8px;
+        background:#fff; color:#374151;
+        border:1px solid var(--border);
+      }
+      .btn-outline:hover{background:#f3f4f6}
+      .btn svg{width:16px; height:16px; margin-right:8px}
+
+      /* Results */
+      .result-card{
+        border:1px solid var(--border);
+        border-radius:10px;
+        padding:20px;
+      }
+      .result-title{font-weight:700; font-size:1.05rem; color:var(--muted); margin:0 0 6px; text-align:left}
+      .qtext{font-size:1.1rem; margin:0 0 12px}
+      .answer{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        font-size:1.5rem; font-weight:800; letter-spacing:.02em;
+      }
+      .answer .unit{color:var(--muted); margin-left:.25rem}
+      .row{display:flex; align-items:center; justify-content:space-between; gap:16px}
+
+      /* Spinner */
+      .spinner{
+        width:40px;height:40px;border-radius:50%;
+        border:3px solid var(--ring-soft); border-top-color:var(--ring);
+        animation:spin .8s linear infinite;
+      }
+      @keyframes spin{to{transform:rotate(360deg)}}
+
+      /* Simple toast (visual parity with shadcn) */
+      #toast{
+        position: fixed; bottom: 16px; right: 16px; z-index: 1000;
+        display:none;
+      }
+      .toast{
+        background:#fff; border:1px solid var(--border); border-radius:10px;
+        padding:12px 14px; box-shadow: 0 10px 20px rgba(0,0,0,.06);
+        min-width: 240px;
+      }
+      .toast-title{font-weight:700; font-size:.9rem; margin:0 0 4px}
+      .toast-desc{font-size:.85rem; color:var(--muted); margin:0}
     </style>
   </head>
   <body>
-    <div class="gear" title="Settings">
-      <a href="/user" aria-label="Switch to user page">⚙️</a>
-    </div>
-    <h1>Loncapa Autosolver</h1>
-    <button id="test-button">Test Button</button>
+    <div style="position:absolute; right:16px; top:12px"><a href="/admin" title="Switch to admin page" style="text-decoration:none; color:#6b7280; font-size:28px; padding:6px 8px; border-radius:6px">⚙️</a></div>
+    <div class="container">
+      <!-- Header -->
+      <div class="text-center space-y-2" style="margin-bottom:24px">
+        <h1 class="title">Loncapa Autosolver</h1>
+        <p class="sub">Assignment 4 coming soon.</p>
+      </div>
 
-    <div>
-      <h2>Paste Assignment HTML</h2>
-      <textarea id="assignment-html" rows="20" cols="100" placeholder="Paste the full assignment page HTML here..."></textarea>
-      <br>
-      <button id="solve-assignment">Solve Assignment</button>
-      <button id="debug-extract" style="margin-left:8px">Debug Extract</button>
+      <!-- Instructions -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Instructions</h2>
+        </div>
+        <div class="card-content">
+          <ol class="clean muted">
+            <li>Enter your email below</li>
+            <li>Right click the screen on your Loncapa assignment page</li>
+            <li>Select “Inspect” and navigate to the "Elements" tab</li>
+            <li>Scroll to the top of the elements</li>
+            <li>Right click on the first coloured row that starts with "&lt;html"</li>
+            <li>Press “Copy” and then “Copy outerHTML”</li>
+            <li>Paste the HTML content in the textbox below and press Solve</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Email input -->
+      <div class="email-box" style="margin: 16px 0; text-align:center">
+        <label for="email-input" style="display:block; font-weight:600; margin-bottom:6px">Email</label>
+        <input id="email-input" type="email" placeholder="you@example.com" style="font-size:1.1rem; padding:10px 12px; width: min(520px, 90%); border:1px solid #d1d5db; border-radius:8px" />
+        <div id="email-status" style="margin-top:8px; color:#6b7280"></div>
+      </div>
+
+      <!-- HTML Input -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <h2 class="card-title">Paste HTML here</h2>
+        </div>
+        <div class="card-content">
+          <textarea id="assignment-html" placeholder="Paste the HTML content from your Loncapa assignment here..."></textarea>
+          <div style="margin-top:12px">
+            <button id="solve-assignment" class="btn">Solve Assignment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <h2 class="card-title">Results</h2>
+        </div>
+        <div class="card-content">
+          <div id="results" class="space-y-4">
+            <!-- Your /static/user.js should inject result cards here. Example structure:
+            <div class="result-card">
+              <div>
+                <div class="result-title">Question:</div>
+                <p class="qtext">…question text…</p>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="result-title" style="margin-bottom:4px">Answer:</div>
+                  <p class="answer">20.4 <span class="unit">m</span></p>
+                </div>
+                <button class="btn btn-outline copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</button>
+              </div>
+            </div>
+            -->
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <h2>Results</h2>
-      <div id="loading" class="spinner" style="display:none"></div>
-      <div id="results"></div>
-    </div>
+    <!-- Floating spinner (hidden by default but ID preserved for your script) -->
+    <div id="loading" class="spinner" style="display:none; position: fixed; right: 16px; bottom: 16px;"></div>
 
-    <script>console.log('app.js expected v=4')</script>
-    <script src="/static/app.js?v=4"></script>
+    <!-- Minimal toast (optional helper; safe to keep even if unused) -->
+    <div id="toast"><div class="toast"><div class="toast-title" id="toast-title"></div><p class="toast-desc" id="toast-desc"></p></div></div>
+
+    <!-- Your parser/solver logic -->
+    <script src="/static/user.js?v=5"></script>
+
+    <!-- Small helpers for copy + toast, without conflicting with your user.js -->
+    <script>
+      // Event delegation so it works with dynamically injected results
+      document.addEventListener("click", async (e) => {
+        const target = e.target && e.target.closest ? e.target.closest(".copy") : null;
+        const btn = target || null;
+        if (!btn) return;
+        // Prefer the answer in the same row as the clicked button
+        let ansEl = btn.parentElement ? btn.parentElement.querySelector(".answer") : null;
+        // Fallback to first answer inside the enclosing card element
+        const card = btn.closest ? (btn.closest(".result-card") || btn.closest(".card")) : null;
+        if (!ansEl && card) ansEl = card.querySelector(".answer");
+        const ans = ansEl && ansEl.textContent ? ansEl.textContent.trim() : "";
+        if (!ans) return;
+
+        try {
+          await navigator.clipboard.writeText(ans);
+          const original = btn.innerHTML;
+          btn.innerHTML = '✔️ Copied';
+          showToast("Copied!", `Answer "${ans}" copied to clipboard`);
+          setTimeout(() => (btn.innerHTML = original), 1800);
+        } catch {
+          showToast("Error", "Failed to copy to clipboard");
+        }
+      });
+
+      function showToast(title, desc){
+        const wrap = document.getElementById("toast");
+        const t = document.getElementById("toast-title");
+        const d = document.getElementById("toast-desc");
+        if (!wrap || !t || !d) return;
+        t.textContent = title;
+        d.textContent = desc || "";
+        wrap.style.display = "block";
+        window._toastTimer && clearTimeout(window._toastTimer);
+        window._toastTimer = setTimeout(()=> wrap.style.display = "none", 2200);
+      }
+    </script>
   </body>
 </html>
