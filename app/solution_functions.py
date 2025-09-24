@@ -493,7 +493,220 @@ questions_1D03 = [
     "part": 1,
     "prompt": "Stopping distance",
   },
+
+  # Assignment 4 (1D03 A4)
+  {
+    "problem_id": "sf-prob0442a.problem",
+    "question_text": "Block on incline held by horizontal force; find minimum F and normal force",
+    "inputs": ["m_kg", "theta_deg", "mu_s"],
+    "function": "prob_sf_0442a_part1",
+    "answer_units": "N",
+    "pattern_matcher": "sf0442a",
+    "part": 1,
+    "prompt": "Minimum horizontal force F",
+  },
+  {
+    "problem_id": "sf-prob0442a.problem",
+    "question_text": "Normal force exerted by incline",
+    "inputs": ["m_kg", "theta_deg", "mu_s"],
+    "function": "prob_sf_0442a_part2",
+    "answer_units": "N",
+    "pattern_matcher": "sf0442a",
+    "part": 2,
+    "prompt": "Normal force",
+  },
+  {
+    "problem_id": "sf-prob0458.problem",
+    "question_text": "Rope deflection in accelerating car; find car acceleration",
+    "inputs": ["m_kg", "alpha_deg"],
+    "function": "prob_sf_0458",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "sf0458",
+    "part": 1,
+    "prompt": "Car acceleration",
+  },
+  {
+    "problem_id": "sb-prob0568a.problem",
+    "question_text": "Two stacked blocks with kinetic friction; string tension",
+    "inputs": ["m1_kg", "m2_kg", "F_N", "mu_k"],
+    "function": "prob_sb_0568a_part1",
+    "answer_units": "N",
+    "pattern_matcher": "sb0568a",
+    "part": 1,
+    "prompt": "String tension",
+  },
+  {
+    "problem_id": "sb-prob0568a.problem",
+    "question_text": "Two stacked blocks with kinetic friction; acceleration of heavy block",
+    "inputs": ["m1_kg", "m2_kg", "F_N", "mu_k"],
+    "function": "prob_sb_0568a_part2",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "sb0568a",
+    "part": 2,
+    "prompt": "Acceleration of 12.5 kg block",
+  },
+  {
+    "problem_id": "sb-prob0613a.problem",
+    "question_text": "Conical pendulum: force components and radial acceleration",
+    "inputs": ["m_kg", "L_m", "theta_deg"],
+    "function": "prob_sb_0613a_part1",
+    "answer_units": "N",
+    "pattern_matcher": "sb0613a",
+    "part": 1,
+    "prompt": "Horizontal component of wire force",
+  },
+  {
+    "problem_id": "sb-prob0613a.problem",
+    "question_text": "Conical pendulum: vertical component of force",
+    "inputs": ["m_kg", "L_m", "theta_deg"],
+    "function": "prob_sb_0613a_part2",
+    "answer_units": "N",
+    "pattern_matcher": "sb0613a",
+    "part": 2,
+    "prompt": "Vertical component of wire force",
+  },
+  {
+    "problem_id": "sb-prob0613a.problem",
+    "question_text": "Conical pendulum: radial acceleration",
+    "inputs": ["m_kg", "L_m", "theta_deg"],
+    "function": "prob_sb_0613a_part3",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "sb0613a",
+    "part": 3,
+    "prompt": "Radial acceleration",
+  },
+  {
+    "problem_id": "sb-prob0611.problem",
+    "question_text": "Crate in truck on unbanked curve: maximum speed without sliding",
+    "inputs": ["R_m", "mu_s"],
+    "function": "prob_sb_0611",
+    "answer_units": "m/s",
+    "pattern_matcher": "sb0611",
+    "part": 1,
+    "prompt": "Maximum speed",
+  },
+  {
+    "problem_id": "hr-prob0636a.problem",
+    "question_text": "Two sleds tied together on incline with friction: tension and acceleration",
+    "inputs": ["mA_kg", "mB_kg", "theta_deg", "mu_k_A", "mu_k_B"],
+    "function": "prob_hr_0636a_part1",
+    "answer_units": "N",
+    "pattern_matcher": "hr0636a",
+    "part": 1,
+    "prompt": "Tension in bar",
+  },
+  {
+    "problem_id": "hr-prob0636a.problem",
+    "question_text": "Two sleds tied together on incline with friction: acceleration",
+    "inputs": ["mA_kg", "mB_kg", "theta_deg", "mu_k_A", "mu_k_B"],
+    "function": "prob_hr_0636a_part2",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "hr0636a",
+    "part": 2,
+    "prompt": "Acceleration of sleds",
+  },
+  {
+    "problem_id": "hr-prob0666.problem",
+    "question_text": "Banked turn by airplane (tilted wings): find turn radius",
+    "inputs": ["v_kmh", "tilt_deg"],
+    "function": "prob_hr_0666",
+    "answer_units": "m",
+    "pattern_matcher": "hr0666",
+    "part": 1,
+    "prompt": "Turn radius",
+  },
+  {
+    "problem_id": "hr-prob0670b.problem",
+    "question_text": "Ball on rotating rod with two strings: lower string tension",
+    "inputs": ["m_kg", "L_m", "T_upper_N"],
+    "function": "prob_hr_0670b_part1",
+    "answer_units": "N",
+    "pattern_matcher": "hr0670b",
+    "part": 1,
+    "prompt": "Lower string tension",
+  },
+  {
+    "problem_id": "hr-prob0670b.problem",
+    "question_text": "Ball on rotating rod with two strings: speed of ball",
+    "inputs": ["m_kg", "L_m", "T_upper_N"],
+    "function": "prob_hr_0670b_part2",
+    "answer_units": "m/s",
+    "pattern_matcher": "hr0670b",
+    "part": 2,
+    "prompt": "Speed of ball",
+  },
+  {
+    "problem_id": "kn-prob0828.problem",
+    "question_text": "Two-block system with friction and applied force: acceleration of lower block",
+    "inputs": ["F_N", "mu_k_surface", "mu_k_between", "m_lower_kg", "m_upper_kg"],
+    "function": "prob_kn_0828",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "kn0828",
+    "part": 1,
+    "prompt": "Acceleration of lower block",
+  },
+  {
+    "problem_id": "kn-prob0836a.problem",
+    "question_text": "Incline with pulley to hanging mass: minimum M1 and acceleration when nudged",
+    "inputs": ["theta_deg", "mu_s", "mu_k", "m2_kg"],
+    "function": "prob_kn_0836a_part1",
+    "answer_units": "kg",
+    "pattern_matcher": "kn0836a",
+    "part": 1,
+    "prompt": "Minimum M1",
+  },
+  {
+    "problem_id": "kn-prob0836a.problem",
+    "question_text": "Incline with pulley to hanging mass: acceleration when nudged",
+    "inputs": ["theta_deg", "mu_s", "mu_k", "m2_kg"],
+    "function": "prob_kn_0836a_part2",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "kn0836a",
+    "part": 2,
+    "prompt": "Acceleration when nudged",
+  },
+  {
+    "problem_id": "kn-prob0838a.problem",
+    "question_text": "Book on slope with hanging cup: acceleration and slide distance",
+    "inputs": ["m_book_kg", "m_cup_kg", "v0_ms", "mu_s", "mu_k", "theta_deg"],
+    "function": "prob_kn_0838a_part1",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "kn0838a",
+    "part": 1,
+    "prompt": "Acceleration of book",
+  },
+  {
+    "problem_id": "kn-prob0838a.problem",
+    "question_text": "Book on slope with hanging cup: distance until stop",
+    "inputs": ["m_book_kg", "m_cup_kg", "v0_ms", "mu_s", "mu_k", "theta_deg"],
+    "function": "prob_kn_0838a_part2",
+    "answer_units": "m",
+    "pattern_matcher": "kn0838a",
+    "part": 2,
+    "prompt": "Slide distance to stop",
+  },
+  {
+    "problem_id": "cj-prob0491a.problem",
+    "question_text": "Massless pulleys and rope: tension and acceleration (2:1 displacement constraint)",
+    "inputs": ["M_big_kg", "M_small_kg"],
+    "function": "prob_cj_0491a_part1",
+    "answer_units": "N",
+    "pattern_matcher": "cj0491a",
+    "part": 1,
+    "prompt": "Tension in rope",
+  },
+  {
+    "problem_id": "cj-prob0491a.problem",
+    "question_text": "Massless pulleys and rope: acceleration of 10.09 kg block",
+    "inputs": ["M_big_kg", "M_small_kg"],
+    "function": "prob_cj_0491a_part2",
+    "answer_units": "m/s^2",
+    "pattern_matcher": "cj0491a",
+    "part": 2,
+    "prompt": "Acceleration of 10.09 kg block",
+  },
 ]
+
 
 questions_1E03 = [
   {
@@ -1431,3 +1644,222 @@ def prob_kn_0552(m_kg, phi_deg, mu_s, g=9.80665):
         raise ValueError("Impossible to move up for this angle: sinφ ≤ μs cosφ.")
     return m_kg * g / denom
 
+def prob_sf_0442a_part1(m_kg: float, theta_deg: float, mu_s: float) -> float:
+    """
+    Minimum horizontal force F (to the right) required to hold a block at rest on an incline.
+    Friction assists up the plane at the threshold.
+    F_min = m g (sinθ - μs cosθ) / (cosθ + μs sinθ).
+    If sinθ <= μs cosθ, friction alone can hold the block ⇒ F_min = 0.
+    """
+    g = 9.80665
+    theta = math.radians(theta_deg)
+    num = math.sin(theta) - mu_s * math.cos(theta)
+    den = math.cos(theta) + mu_s * math.sin(theta)
+    if den <= 0:
+        raise ValueError("Geometry near singular (cosθ + μs sinθ ≤ 0).")
+    if num <= 0:
+        return 0.0  # friction alone suffices
+    return m_kg * g * num / den
+
+
+def prob_sf_0442a_part2(m_kg: float, theta_deg: float, mu_s: float) -> float:
+    """
+    Normal force on the block when held with the minimum horizontal force from Part 1.
+    N = m g cosθ + F_min sinθ.
+    """
+    g = 9.80665
+    theta = math.radians(theta_deg)
+    F_min = prob_sf_0442a_part1(m_kg, theta_deg, mu_s)
+    N = m_kg * g * math.cos(theta) + F_min * math.sin(theta)
+    return N
+
+
+def prob_sf_0458(m_kg: float, alpha_deg: float, g: float = 9.80665) -> float:
+    """
+    Car acceleration from rope deflection in an accelerating frame.
+    A small mass hangs from the roof and the rope makes angle alpha from vertical.
+    From equilibrium in the non-inertial frame: tan(alpha) = a / g ⇒ a = g * tan(alpha).
+    The mass m is irrelevant for a; accepted to match the catalog signature.
+    Returns acceleration in m/s^2.
+    """
+    alpha = math.radians(alpha_deg)
+    return g * math.tan(alpha)
+
+def prob_sb_0568a_part1(m1_kg: float, m2_kg: float, F_N: float, mu_k: float, g: float = 9.80665) -> float:
+    """
+    Two stacked blocks; lower block pulled by F. All contacts kinetic with coeff mu_k.
+    Top block m1 is tied to a wall → friction on m1 (right) = μk m1 g, so the string tension T = μk m1 g.
+    """
+    return mu_k * float(m1_kg) * g
+
+def prob_sb_0568a_part2(m1_kg: float, m2_kg: float, F_N: float, mu_k: float, g: float = 9.80665) -> float:
+    """
+    Acceleration of the heavy (lower) block m2.
+    Friction on m2 from table: μk (m1+m2) g (left).
+    Friction from the top interface on m2: μk m1 g (left).
+    m2 a = F - μk g [(m1+m2) + m1] ⇒ a = [F - μk g (m2 + 2 m1)] / m2
+    """
+    m1, m2, F = float(m1_kg), float(m2_kg), float(F_N)
+    return (F - mu_k * g * (m2 + 2.0 * m1)) / m2
+
+
+# ---------- sb-prob0613a.problem (Conical pendulum) ----------
+def prob_sb_0613a_part1(m_kg: float, L_m: float, theta_deg: float, g: float = 9.80665) -> float:
+    """
+    Horizontal component of the wire force: F_h = T sinθ, with T cosθ = mg ⇒ T = mg/cosθ.
+    Hence F_h = mg tanθ.
+    """
+    th = math.radians(float(theta_deg))
+    return float(m_kg) * g * math.tan(th)
+
+def prob_sb_0613a_part2(m_kg: float, L_m: float, theta_deg: float, g: float = 9.80665) -> float:
+    """
+    Vertical component of the wire force: F_v = T cosθ = mg.
+    """
+    return float(m_kg) * g
+
+def prob_sb_0613a_part3(m_kg: float, L_m: float, theta_deg: float, g: float = 9.80665) -> float:
+    """
+    Radial (centripetal) acceleration: a_r = g tanθ.
+    """
+    th = math.radians(float(theta_deg))
+    return g * math.tan(th)
+
+
+# ---------- sb-prob0611.problem ----------
+def prob_sb_0611(R_m: float, mu_s: float, g: float = 9.80665) -> float:
+    """
+    Max speed on unbanked curve without sliding: v_max = sqrt(μs g R).
+    """
+    return math.sqrt(float(mu_s) * g * float(R_m))
+
+
+# ---------- hr-prob0636a.problem (two sleds on incline with friction) ----------
+def prob_hr_0636a_part2(mA_kg: float, mB_kg: float, theta_deg: float, mu_k_A: float, mu_k_B: float, g: float = 9.80665) -> float:
+    """
+    Common acceleration down the slope:
+      (mA+mB) a = (mA+mB) g sinθ - g cosθ (μA mA + μB mB)
+      ⇒ a = g[ sinθ - cosθ * (μA mA + μB mB)/(mA+mB) ].
+    """
+    mA, mB = float(mA_kg), float(mB_kg)
+    th = math.radians(float(theta_deg))
+    return g * (math.sin(th) - math.cos(th) * (mu_k_A * mA + mu_k_B * mB) / (mA + mB))
+
+def prob_hr_0636a_part1(mA_kg: float, mB_kg: float, theta_deg: float, mu_k_A: float, mu_k_B: float, g: float = 9.80665) -> float:
+    """
+    Tension in the bar. Using block B (down-slope +):
+      mB a = mB g sinθ - μB mB g cosθ + T  ⇒  T = mB a - mB g sinθ + μB mB g cosθ.
+    """
+    a = prob_hr_0636a_part2(mA_kg, mB_kg, theta_deg, mu_k_A, mu_k_B, g=g)
+    mB = float(mB_kg); th = math.radians(float(theta_deg))
+    return mB * a - mB * g * math.sin(th) + mu_k_B * mB * g * math.cos(th)
+
+
+# ---------- hr-prob0666.problem ----------
+def prob_hr_0666(v_kmh: float, tilt_deg: float, g: float = 9.80665) -> float:
+    """
+    Airplane banked turn (wings tilted by 'tilt_deg' to the horizontal).
+    Lift is perpendicular to the wing ⇒ tilt of lift from vertical = tilt_deg.
+    r = v^2 / (g tan(tilt)), with v in m/s.
+    """
+    v = float(v_kmh) * (1000.0 / 3600.0)
+    phi = math.radians(float(tilt_deg))
+    return v * v / (g * math.tan(phi))
+
+
+# ---------- hr-prob0670b.problem (equilateral two-string around rod) ----------
+def prob_hr_0670b_part1(m_kg: float, L_m: float, T_upper_N: float, g: float = 9.80665) -> float:
+    """
+    Lower string tension: vertical balance at bob with strings at ±30° to horizontal:
+      T_u sin30 - T_l sin30 - mg = 0  ⇒  T_l = T_u - 2mg.
+    """
+    return float(T_upper_N) - 2.0 * float(m_kg) * g
+
+def prob_hr_0670b_part2(m_kg: float, L_m: float, T_upper_N: float, g: float = 9.80665) -> float:
+    """
+    Speed of ball.
+    Radial balance: (T_u + T_l) cos30 = m v^2 / r,   r = (√3/2) L,  T_l = T_u - 2mg.
+    """
+    m = float(m_kg); L = float(L_m); Tu = float(T_upper_N)
+    Tl = Tu - 2.0 * m * g
+    r  = (math.sqrt(3.0) / 2.0) * L
+    return math.sqrt(((Tu + Tl) * (math.sqrt(3.0) / 2.0)) * r / m)
+
+
+# ---------- kn-prob0828.problem ----------
+def prob_kn_0828(F_N: float, mu_k_surface: float, mu_k_between: float, m_lower_kg: float, m_upper_kg: float, g: float = 9.80665) -> float:
+    """
+    Lower block acceleration with top block sliding on it.
+    Friction at table (left): μ_surface (m_lower + m_upper) g.
+    Friction from top interface on lower (left): μ_between m_upper g.
+    ⇒ a = [F - g ( μ_surface (m_l + m_u) + μ_between m_u )] / m_lower
+    """
+    F = float(F_N); ml = float(m_lower_kg); mu = float(m_upper_kg)
+    return (F - g * (mu_k_surface * (ml + mu) + mu_k_between * mu)) / ml
+
+
+# ---------- kn-prob0836a.problem ----------
+def prob_kn_0836a_part1(theta_deg: float, mu_s: float, mu_k: float, m2_kg: float, g: float = 9.80665) -> float:
+    """
+    Minimum M1 on incline (angle theta) to keep system at rest against hanging mass m2.
+      T = m2 g = M1 g (sinθ + μs cosθ)  ⇒  M1_min = m2 / (sinθ + μs cosθ)
+    """
+    th = math.radians(float(theta_deg))
+    denom = math.sin(th) + float(mu_s) * math.cos(th)
+    if denom <= 0:
+        raise ValueError("Invalid parameters: sinθ + μs cosθ ≤ 0")
+    return float(m2_kg) / denom
+
+def prob_kn_0836a_part2(theta_deg: float, mu_s: float, mu_k: float, m2_kg: float, g: float = 9.80665) -> float:
+    """
+    If nudged so M1 moves UP the incline (kinetic friction down the plane):
+      a = [ m2 g - M1 g (sinθ + μk cosθ) ] / (M1 + m2), with M1 = prob_kn_0836a_part1(...)
+    """
+    M1 = prob_kn_0836a_part1(theta_deg, mu_s, mu_k, m2_kg, g=g)
+    th = math.radians(float(theta_deg))
+    m2 = float(m2_kg)
+    return (m2 * g - M1 * g * (math.sin(th) + float(mu_k) * math.cos(th))) / (M1 + m2)
+
+
+# ---------- kn-prob0838a.problem ----------
+def prob_kn_0838a_part1(m_book_kg: float, m_cup_kg: float, v0_ms: float, mu_s: float, mu_k: float, theta_deg: float, g: float = 9.80665) -> float:
+    """
+    Book on slope (up-slope positive) tied over a pulley to a hanging cup.
+    While sliding up-slope, kinetic friction acts down-slope on the book.
+    Book:  m_b a = T - m_b g sinθ - μk m_b g cosθ
+    Cup:   m_c a =  T - m_c g    (upward positive)
+    ⇒ a = [ m_c g - m_b g (sinθ + μk cosθ) ] / (m_b - m_c)
+    (Usually negative here: deceleration of the book.)
+    """
+    mb, mc = float(m_book_kg), float(m_cup_kg)
+    th = math.radians(float(theta_deg))
+    return (mc * g - mb * g * (math.sin(th) + float(mu_k) * math.cos(th))) / (mb - mc)
+
+def prob_kn_0838a_part2(m_book_kg: float, m_cup_kg: float, v0_ms: float, mu_s: float, mu_k: float, theta_deg: float, g: float = 9.80665) -> float:
+    """
+    Distance the book slides before stopping, assuming constant a from part 1 (<0):
+      s = v0^2 / (2 |a|).
+    """
+    a = prob_kn_0838a_part1(m_book_kg, m_cup_kg, v0_ms, mu_s, mu_k, theta_deg, g=g)
+    if a >= 0:
+        raise ValueError("Book does not decelerate (a must be negative) with given parameters.")
+    v0 = float(v0_ms)
+    return (v0 * v0) / (2.0 * (-a))
+
+
+# ---------- cj-prob0491a.problem (2:1 pulley displacement constraint) ----------
+def prob_cj_0491a_part2(M_big_kg: float, M_small_kg: float, g: float = 9.80665) -> float:
+    """
+    Acceleration of the big (table) block. Kinematics: a_big = 2 a_small.
+    Dynamics: 2T - m_s g = m_s a_small,  T = m_big a_big.
+    ⇒ a_big = (2 m_s g) / (4 m_big - m_s)
+    """
+    mL, mS = float(M_big_kg), float(M_small_kg)
+    return (2.0 * mS * g) / (4.0 * mL - mS)
+
+def prob_cj_0491a_part1(M_big_kg: float, M_small_kg: float, g: float = 9.80665) -> float:
+    """
+    Tension in the rope: T = m_big * a_big, with a_big from prob_cj_0491a_part2.
+    """
+    a_big = prob_cj_0491a_part2(M_big_kg, M_small_kg, g=g)
+    return float(M_big_kg) * a_big

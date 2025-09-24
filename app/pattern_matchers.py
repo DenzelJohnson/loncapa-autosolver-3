@@ -288,7 +288,6 @@ def sb0344(html_or_text: str) -> List[str]:
         raise ValueError("Could not extract variables for sb0344")
     return [ds[0], angs[0], ds[1], angs[1], ds[2], angs[2]]
 
-
 REGISTRY: Dict[str, Callable[[str], List[str]]] = {
     "prob1508": prob1508,
     "prob1514": prob1514,
@@ -395,6 +394,12 @@ def sb0446(html_or_text: str) -> List[str]:
         raise ValueError("Could not extract variables for sb0446")
     return [r.group(1), h.group(1), R.group(1)]
 
+REGISTRY.update({
+    "sb0441a": sb0441a,
+    "sb0464": sb0464,
+    "sb0446": sb0446,
+})
+
 
 def hr0483(html_or_text: str) -> List[str]:
     """Extract v_air_kmh, distance_km, heading_deg_east_of_north, time_hr. Flexible units."""
@@ -412,7 +417,7 @@ def hr0483(html_or_text: str) -> List[str]:
     if v_air is None:
         v_list = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*km\s*/\s*h(?:r)?\b", text, flags=re.IGNORECASE)
         if len(v_list) >= 1:
-            class _MV: 
+            class _MV:
                 def __init__(self, v): self._v = v
                 def group(self, i): return self._v
             v_air = _MV(v_list[0])
@@ -441,6 +446,10 @@ def hr0483(html_or_text: str) -> List[str]:
     if not (v_air and dist and heading and time):
         raise ValueError("Could not extract variables for hr0483")
     return [v_air.group(1), dist.group(1), heading.group(1), time.group(1)]
+
+REGISTRY.update({
+    "hr0483": hr0483,
+})
 
 
 def sb0518a(html_or_text: str) -> List[str]:
@@ -507,10 +516,6 @@ def sb0524a(html_or_text: str) -> List[str]:
     return [w.group(1), theta1, theta2]
 
 REGISTRY.update({
-    "sb0441a": sb0441a,
-    "sb0464": sb0464,
-    "sb0446": sb0446,
-    "hr0483": hr0483,
     "sb0518a": sb0518a,
     "sb0524a": sb0524a,
 })
@@ -697,4 +702,344 @@ REGISTRY.update({
     "sb0552a": sb0552a,
     "sb0563a": sb0563a,
     "hr0621": hr0621,
+})
+
+
+def sf0442a(html_or_text: str) -> List[str]:
+    """Extract m_kg, theta_deg, mu_s for sf-prob0442a (block on incline with horizontal force).
+    Accepts θ=...° or deg, and μ_s = ... or text 'coefficient of static friction'.
+    """
+    text = html_or_text
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    theta = re.search(r"(?:θ|theta)\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    mu = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|co-?efficient\s+of\s+static\s+friction\s*(?:is|=)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    if not (m and theta and mu):
+        raise ValueError("Could not extract variables for sf0442a")
+    mu_val = mu.group(1) or mu.group(2)
+    return [m.group(1), theta.group(1), mu_val]
+
+REGISTRY.update({
+    "sf0442a": sf0442a,
+})
+
+
+def sf0458(html_or_text: str) -> List[str]:
+    """Extract m_kg and alpha_deg for sf-prob0458 (rope angle in accelerating car).
+    Matches forms like 'm = 2.44kg' and 'alpha of 3.53°' (or deg), Greek α or 'alpha'.
+    """
+    text = html_or_text
+    m = re.search(r"\bm\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not m:
+        m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    alpha = re.search(r"(?:α|alpha)\s*(?:=|of)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if not (m and alpha):
+        raise ValueError("Could not extract variables for sf0458")
+    return [m.group(1), alpha.group(1)]
+
+REGISTRY.update({
+    "sf0458": sf0458,
+})
+
+
+def sb0568a(html_or_text: str) -> List[str]:
+    """Extract m1_kg, m2_kg, F_N, mu_k for sb-prob0568a (stacked blocks with string and kinetic friction).
+    Handles forms like m1=7.07kg, m2=12.5kg, a horizontal force of 86.5N, and 'co-efficient/coefficient of kinetic friction ... is 0.232'.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    # Explicit m1, m2 if present; fallback to first two kg values
+    m1 = re.search(r"(?:m\s*1|m1)\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    m2 = re.search(r"(?:m\s*2|m2)\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not (m1 and m2):
+        masses = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if len(masses) >= 2:
+            class _M:
+                def __init__(self, v): self._v = v
+                def group(self, i): return self._v
+            if not m1: m1 = _M(masses[0])
+            if not m2: m2 = _M(masses[1])
+    # Prefer phrasing 'force of ... N'; fallback to first N value
+    F_specific = re.search(r"force\s+of\s*([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    F = F_specific or re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    # Kinetic friction coefficient phrases
+    mu_k = re.search(r"(?:mu|μ)[_\s]*k\s*=\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    if not mu_k:
+        mu_k = re.search(r"co-?efficient\s+of\s+kinetic\s+friction.*?(?:is|=)\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE | re.DOTALL)
+    if not (m1 and m2 and F and mu_k):
+        raise ValueError("Could not extract variables for sb0568a")
+    return [m1.group(1), m2.group(1), F.group(1), mu_k.group(1)]
+
+REGISTRY.update({
+    "sb0568a": sb0568a,
+})
+
+
+def sb0613a(html_or_text: str) -> List[str]:
+    """Extract m_kg, L_m, theta_deg for sb-prob0613a (conical pendulum).
+    Supports phrasing like '72.5kg bob', '12.0m wire', 'angle θ of 6.10°' or 'theta = 6.10 deg'.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    L = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\b(?!\s*/\s*s)", text, flags=re.IGNORECASE)
+    theta = re.search(r"(?:θ|theta)\s*(?:=|of)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if not (m and L and theta):
+        raise ValueError("Could not extract variables for sb0613a")
+    return [m.group(1), L.group(1), theta.group(1)]
+
+REGISTRY.update({
+    "sb0613a": sb0613a,
+})
+
+
+def sb0611(html_or_text: str) -> List[str]:
+    """Extract R_m (curve radius, meters) and mu_s (static friction) for sb-prob0611.
+    Matches 'radius 35.1m' and 'coefficient of static friction ... 0.605' or 'mu_s = 0.605'.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    R = re.search(r"radius\s*([0-9]+(?:\.[0-9]+)?)\s*m\b", text, flags=re.IGNORECASE)
+    mu = re.search(r"(?:mu|μ)[_\s]*s\s*=\s*([0-9]+(?:\.[0-9]+)?)|co-?efficient\s+of\s+static\s+friction.*?(?:is|=)\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE | re.DOTALL)
+    mu_val = (mu.group(1) or mu.group(2)) if mu else None
+    if not (R and mu_val):
+        raise ValueError("Could not extract variables for sb0611")
+    return [R.group(1), mu_val]
+
+REGISTRY.update({
+    "sb0611": sb0611,
+})
+
+
+def hr0636a(html_or_text: str) -> List[str]:
+    """Extract mA_kg, mB_kg, theta_deg, mu_k_A, mu_k_B for hr-prob0636a.
+    Robust to 'co-efficient' spelling and general phrasing; returns raw numeric strings.
+    """
+    text = html_or_text
+    # Masses of sled A and B (in order as they appear)
+    masses = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    mA = masses[0] if len(masses) >= 1 else None
+    mB = masses[1] if len(masses) >= 2 else None
+
+    # Incline angle in degrees (prefer the one near the word 'incline' or 'angle')
+    theta = re.search(r"(?:incline|angle)[^0-9]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if not theta:
+        theta = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+
+    # Kinetic friction coefficients for sled A and B
+    muA = re.search(r"co-?efficient\s+of\s+kinetic\s+friction.*?sled\s*A.*?(?:is|=)\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE|re.DOTALL)
+    muB = re.search(r"co-?efficient\s+of\s+kinetic\s+friction.*?sled\s*B.*?(?:is|=)\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE|re.DOTALL)
+    # Fallback: take two numbers following 'kinetic friction' contexts in order
+    if (muA is None or muB is None):
+        mus = re.findall(r"co-?efficient\s+of\s+kinetic\s+friction[^0-9]*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+        if len(mus) >= 2:
+            if muA is None:
+                class _M:
+                    def __init__(self, v): self._v = v
+                    def group(self, i): return self._v
+                muA = _M(mus[0])
+            if muB is None:
+                class _M2:
+                    def __init__(self, v): self._v = v
+                    def group(self, i): return self._v
+                muB = _M2(mus[1])
+
+    if not (mA and mB and theta and muA and muB):
+        raise ValueError("Could not extract variables for hr0636a")
+
+    return [mA, mB, theta.group(1), muA.group(1), muB.group(1)]
+
+REGISTRY.update({
+    "hr0636a": hr0636a,
+})
+
+
+def hr0666(html_or_text: str) -> List[str]:
+    """Extract v_kmh and tilt_deg for hr-prob0666 (banked turn with tilted wings).
+    Supports km/h or km/hr and degrees symbol or 'deg'; returns raw numeric strings.
+    """
+    text = html_or_text
+    v = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*km\s*/\s*h(?:r)?\b", text, flags=re.IGNORECASE)
+    # Prefer angle near 'tilted', else any degree number
+    tilt = re.search(r"tilt(?:ed)?[^0-9]{0,40}([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if not tilt:
+        tilt = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    if not (v and tilt):
+        raise ValueError("Could not extract variables for hr0666")
+    return [v.group(1), tilt.group(1)]
+
+REGISTRY.update({
+    "hr0666": hr0666,
+})
+
+
+def hr0670b(html_or_text: str) -> List[str]:
+    """Extract m_kg, L_m, T_upper_N for hr-prob0670b (two strings to a rotating rod).
+    Prefers the N-value explicitly tied to the phrase 'upper string'. Returns raw numeric strings.
+    """
+    text = html_or_text
+    # Mass (kg)
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    # Length of each string (meters), avoid m/s by negative lookahead
+    L = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\b(?!\s*/\s*s)", text, flags=re.IGNORECASE)
+    # Upper string tension specifically if available; fallback to first Newton value
+    T_upper = re.search(r"upper\s+string[^0-9]*([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE | re.DOTALL)
+    if not T_upper:
+        T_upper = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    if not (m and L and T_upper):
+        raise ValueError("Could not extract variables for hr0670b")
+    return [m.group(1), L.group(1), T_upper.group(1)]
+
+REGISTRY.update({
+    "hr0670b": hr0670b,
+})
+
+
+def kn0828(html_or_text: str) -> List[str]:
+    """Extract F_N, mu_k_surface, mu_k_between, m_lower_kg, m_upper_kg for kn-prob0828.
+    Handles phrasing like 'force ... 101.0N', 'coefficient of kinetic friction ... is 0.220' for surface and between blocks, and both masses.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    # Force magnitude (prefer explicit 'force' phrasing)
+    F = re.search(r"force[^0-9]*([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+    if not F:
+        F = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*N\b", text, flags=re.IGNORECASE)
+
+    # Two kinetic friction coefficients: surface and between blocks (in order of appearance)
+    mu_list = re.findall(r"co-?efficient\s+of\s+kinetic\s+friction[^0-9]*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    if len(mu_list) < 2:
+        # Fallback: explicit mu_k = ... occurrences
+        mu_list = re.findall(r"(?:mu|μ)[_\s]*k\s*=\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+
+    # Masses: lower then upper, else first two kg numbers
+    m_lower = re.search(r"mass\s+of\s+the\s+lower\s+block\s+is\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    m_upper = re.search(r"mass\s+of\s+the\s+upper\s+block\s+is\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not (m_lower and m_upper):
+        kg_list = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if len(kg_list) >= 2:
+            class _M:
+                def __init__(self, v): self._v = v
+                def group(self, i): return self._v
+            if not m_lower: m_lower = _M(kg_list[0])
+            if not m_upper: m_upper = _M(kg_list[1])
+
+    if not (F and len(mu_list) >= 2 and m_lower and m_upper):
+        raise ValueError("Could not extract variables for kn0828")
+
+    return [F.group(1), mu_list[0], mu_list[1], m_lower.group(1), m_upper.group(1)]
+
+REGISTRY.update({
+    "kn0828": kn0828,
+})
+
+
+def kn0836a(html_or_text: str) -> List[str]:
+    """Extract theta_deg, mu_s, mu_k, m2_kg for kn-prob0836a.
+    Supports μ<sub>s</sub>, μ<sub>k</sub>, plain 'mu_s/mu_k', degrees symbol or 'deg', and 'M2 = ... kg'.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    # Angle in degrees
+    theta = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+    # Static and kinetic friction
+    mus = re.search(r"(?:(?:μ|mu)\s*_?\s*s|μ<sub>\s*s\s*</sub>)\s*(?:=|is|:)\s*([0-9]+(?:\.[0-9]+)?)\b", text, flags=re.IGNORECASE)
+    muk = re.search(r"(?:(?:μ|mu)\s*_?\s*k|μ<sub>\s*k\s*</sub>)\s*(?:=|is|:)\s*([0-9]+(?:\.[0-9]+)?)\b", text, flags=re.IGNORECASE)
+    if not mus:
+        mus = re.search(r"co-?efficient\s+of\s+static\s+friction\s*(?:is|=)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    if not muk:
+        muk = re.search(r"co-?efficient\s+of\s+kinetic\s+friction\s*(?:is|=)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    # Hanging mass M2
+    m2 = re.search(r"M\s*2\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not m2:
+        # fallback: second kg value if clearly two numbers exist
+        kg_list = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if len(kg_list) >= 1:
+            class _M:
+                def __init__(self, v): self._v = v
+                def group(self, i): return self._v
+            m2 = _M(kg_list[-1])
+    if not (theta and mus and muk and m2):
+        raise ValueError("Could not extract variables for kn0836a")
+    return [theta.group(1), mus.group(1), muk.group(1), m2.group(1)]
+
+REGISTRY.update({
+    "kn0836a": kn0836a,
+})
+
+
+def kn0838a(html_or_text: str) -> List[str]:
+    """Extract m_book_kg, m_cup_kg, v0_ms, mu_s, mu_k, theta_deg for kn-prob0838a.
+    Supports grams for cup mass (convert to kg as string), μ HTML subscripts or plain μ/mu with spaces, and degrees.
+    Returns raw numeric strings except converts cup grams→kg (as decimal string).
+    """
+    text = html_or_text
+    # Book mass (kg)
+    m_book = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg\s*(?:physics\s*book|book)?", text, flags=re.IGNORECASE)
+    # Cup mass (may be in g). Accept both orders: number before label, or label before number.
+    m_cup_kg = None
+    # number g then 'coffee cup' label
+    m_cup_g1 = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*g\b\s*(?:coffee\s*cup|cup)", text, flags=re.IGNORECASE)
+    # 'coffee cup' label then number g
+    m_cup_g2 = re.search(r"(?:coffee\s*cup|cup)[^0-9\-+]*([0-9]+(?:\.[0-9]+)?)\s*g\b(?!\s*/)", text, flags=re.IGNORECASE)
+    m_cup_g = m_cup_g1 or m_cup_g2
+    if m_cup_g:
+        try:
+            m_cup_kg = f"{float(m_cup_g.group(1))/1000.0}"
+        except Exception:
+            m_cup_kg = None
+    if m_cup_kg is None:
+        cup_kg = re.search(r"(?:coffee\s*cup|cup)[^0-9\-+]*([0-9]+(?:\.[0-9]+)?)\s*kg\b", text, flags=re.IGNORECASE)
+        if not cup_kg:
+            # number kg then 'coffee cup'
+            cup_kg = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*kg\b\s*(?:coffee\s*cup|cup)", text, flags=re.IGNORECASE)
+        m_cup_kg = cup_kg.group(1) if cup_kg else None
+
+    # Initial speed v0 (m/s)
+    v0 = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", text, flags=re.IGNORECASE)
+    if not v0:
+        v0 = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*s-?1|([0-9]+(?:\.[0-9]+)?)\s*m\s*s\^-?1", text, flags=re.IGNORECASE)
+
+    # Friction coefficients μs and μk (accept plain μ/mu with optional spaces or HTML subscripts)
+    mus = re.search(r"(?:(?:μ|mu)\s*_?\s*s|μ<sub>\s*s\s*</sub>)\s*(?:=|is|:)\s*([0-9]+(?:\.[0-9]+)?)\b", text, flags=re.IGNORECASE)
+    if not mus:
+        mus = re.search(r"co-?efficient\s+of\s+static\s+friction\s*(?:is|=|:)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+    muk = re.search(r"(?:(?:μ|mu)\s*_?\s*k|μ<sub>\s*k\s*</sub>)\s*(?:=|is|:)\s*([0-9]+(?:\.[0-9]+)?)\b", text, flags=re.IGNORECASE)
+    if not muk:
+        muk = re.search(r"co-?efficient\s+of\s+kinetic\s+friction\s*(?:is|=|:)?\s*([0-9]+(?:\.[0-9]+)?)", text, flags=re.IGNORECASE)
+
+    # Incline angle
+    theta = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(?:°|deg)", text, flags=re.IGNORECASE)
+
+    if not (m_book and m_cup_kg and v0 and mus and muk and theta):
+        raise ValueError("Could not extract variables for kn0838a")
+    return [m_book.group(1), m_cup_kg, (v0.group(1) if v0 and v0.lastindex else v0.group(0)), mus.group(1), muk.group(1), theta.group(1)]
+
+REGISTRY.update({
+    "kn0838a": kn0838a,
+})
+
+def cj0491a(html_or_text: str) -> List[str]:
+    """Extract M_big_kg and M_small_kg for cj-prob0491a (massless pulleys and rope).
+    Prefers labeled 'larger block' and 'smaller block'; falls back to first two kg values.
+    Returns raw numeric strings.
+    """
+    text = html_or_text
+    m_big = re.search(r"larger\s+block[^0-9]*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    m_small = re.search(r"smaller\s+block[^0-9]*([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+    if not (m_big and m_small):
+        kg_vals = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg", text, flags=re.IGNORECASE)
+        if len(kg_vals) >= 2:
+            class _W:
+                def __init__(self, v): self._v=v
+                def group(self, i): return self._v
+            if not m_big:
+                m_big = _W(kg_vals[0])
+            if not m_small:
+                m_small = _W(kg_vals[1])
+    if not (m_big and m_small):
+        raise ValueError("Could not extract variables for cj0491a")
+    return [m_big.group(1), m_small.group(1)]
+
+REGISTRY.update({
+    "cj0491a": cj0491a,
 })
